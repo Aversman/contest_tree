@@ -226,6 +226,7 @@ void List::remove(Container::Iterator *iter)
 
 		if (tmp_iterator->current == nullptr)
 		{
+			delete tmp_iterator;
 			return;
 		}
 	}
@@ -235,6 +236,8 @@ void List::remove(Container::Iterator *iter)
 	iterator->goToNext();
 	
 	_memory.freeMem(tmp_iterator->current);
+
+	delete tmp_iterator;
 
 	counter_node--;
 }

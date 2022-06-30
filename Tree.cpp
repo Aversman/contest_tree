@@ -47,8 +47,11 @@ Tree::Node* Tree::Iterator::findNextChild(Tree::Node *cur_pos) {
     if (parent->child_count > current_node_child_index + 1) {
 
         list_iter->goToNext();
-        return static_cast<Tree::Node *>(list_iter->getElement(size));
+        Tree::Node *res_elem = static_cast<Tree::Node *>(list_iter->getElement(size));
+        delete list_iter;
+        return res_elem;
     }else {
+        delete list_iter;
         this->findNextChild(parent);
     }
 }
@@ -210,7 +213,6 @@ Tree::Iterator *Tree::find(void *elem, size_t size) {
 
 void Tree::clear() {
     this->recursionNodeRemoving(root);
-    root->childs = 0;
     root->child_count = 0;
     root->elem = nullptr;
     root->parent = NULL;
@@ -261,7 +263,6 @@ bool Tree::remove(AbstractTree::Iterator *iter, int leaf_only) {
 
     recursionNodeRemoving(my_iter->current_pos);
     if (my_iter->current_pos == root) {
-        root->childs = 0;
         root->child_count = 0;
         root->elem = nullptr;
         root->parent = NULL;
@@ -294,6 +295,7 @@ void Tree::remove(Container::Iterator *iter) {
 
 Tree::~Tree() {
     this->clear();
+    delete this->root->childs;
     delete this->root;
     this->root = NULL;
 }
