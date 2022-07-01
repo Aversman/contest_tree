@@ -10,9 +10,9 @@ class Tree: AbstractTree {
         size_t size;
         int child_count;
         Node *parent;
-        List *childs;
-        Node(): elem(NULL), size(0), parent(NULL), childs(NULL), child_count(0) {}
-        Node(size_t size, Node *parent): size(size), parent(parent), child_count(0) {}
+        List childs;
+        Node(MemoryManager &mem): elem(NULL), size(0), parent(NULL), child_count(0), childs(mem) {}
+        Node(size_t size, Node *parent, MemoryManager &mem): size(size), parent(parent), child_count(0), childs(mem) {}
     };
     // кол-во элементов дерева
     int tree_elements = 0;
@@ -39,7 +39,7 @@ public:
 
     Tree(MemoryManager &mem): AbstractTree(mem) {
         this->_memory = mem;
-        root = new (_memory.allocMem(sizeof(Node))) Node();
+        root = new (_memory.allocMem(sizeof(Node))) Node(mem);
     }
     ~Tree();
     int size();

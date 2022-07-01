@@ -6,7 +6,7 @@
 class List : public AbstractList
 {
 private:
-
+	 
 	struct Node
 	{
 		void* value;
@@ -30,8 +30,11 @@ public:
 
 			Node* current = nullptr;
 
+			Node* prev_node = nullptr;
+
 		public:
-			
+		
+
 			void* getElement(size_t& size);
 
 			bool hasNext();
@@ -42,7 +45,7 @@ public:
 
 			~ListIterator() = default;
 
-			friend List;
+			friend class List;
 	};
 
 	int push_front(void* elem, size_t elemSize);

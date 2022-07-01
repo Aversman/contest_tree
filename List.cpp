@@ -37,6 +37,8 @@ void List::ListIterator::goToNext()
 		return;
 	}
 
+	prev_node = current;
+
 	current = current->next;
 }
 
@@ -63,7 +65,12 @@ bool List::ListIterator::equals(Container::Iterator* right)
 
 int List::push_front(void* elem, size_t elemSize)
 {
-	Node* new_front = new  (_memory.allocMem(sizeof(Node)))Node(root, elem, elemSize);
+	Node* new_front = new  (_memory.allocMem(sizeof(Node)))Node(root, nullptr, elemSize);
+
+	new_front->value = (void*)(new char[elemSize]);
+
+	memcpy(new_front->value, elem, elemSize);
+
 	root = new_front;
 	counter_node++;	
 
@@ -80,8 +87,13 @@ void List::pop_front()
 	}
 
 	Node* tmp_node = root;
+
 	root = root->next;
+	
+	_memory.freeMem(tmp_node->value);
+	
 	_memory.freeMem(tmp_node);
+	
 	counter_node--;
 }
 
@@ -99,55 +111,31 @@ void* List::front(size_t& size)
 // Добавление элемента в позицию, на которую указывает итератор iter.
 // В случае успешного добавления функция возвращает значение 0, в случае неудачи 1.
 
+
 int List::insert(AbstractList::Iterator* iter, void* elem, size_t elemSize)
 {
 	ListIterator* iterator = (ListIterator*)iter;
-	Node* new_node = new  (_memory.allocMem(sizeof(Node)))Node(nullptr, elem, elemSize);
+	Node* new_node = new  (_memory.allocMem(sizeof(Node)))Node(nullptr, nullptr, elemSize);
 
 	Node* tmp_node;
 
-	if (iterator->current == root)
-	{
-		tmp_node = root->next;
-		root->next = new_node;
-		new_node->next = tmp_node;
+	
 
-		//new_node->next = root;
-		//root = new_node;
-
-		counter_node++;
-		return 0;
-	}
-
-	ListIterator* tmp_iterator = (ListIterator*)newIterator();
-	tmp_iterator->current = root->next;
-	//Node* prev = root;
-
-	while (tmp_iterator->current != iterator->current && tmp_iterator->current != nullptr)
-	{
-		if (tmp_iterator->hasNext() != true)
-		{
-			_memory.freeMem(new_node);
-			return 1;
-		}
-
-		tmp_iterator->goToNext();
-
-		//prev = prev->next;
-	}
-
-
-	tmp_node = tmp_iterator->current->next;
-	tmp_iterator->current->next = new_node;
+	tmp_node = iterator->current->next;
+	
+	iterator->current->next = new_node;
+	
 	new_node->next = tmp_node;
+	
+	new_node->value = _memory.allocMem(elemSize);
 
-
-	//prev->next = new_node;
-	//new_node->next = tmp_iterator->current;
+	memcpy(new_node->value, elem, elemSize);
 
 	counter_node++;
+
 	return 0;
 }
+
 
 //Функции контейнера:
 
@@ -185,6 +173,8 @@ List::Iterator* List::find(void* elem, size_t size)
 		tmp_iterator->goToNext();
 	}
 
+	delete tmp_iterator;
+
 	return nullptr;
 }
 
@@ -215,29 +205,20 @@ void List::remove(Container::Iterator *iter)
 		return;
 	}
 
-	ListIterator* tmp_iterator = (ListIterator*)newIterator();
-	tmp_iterator->current = root->next;
-	Node* prev = root;
+	Node* tmp_node;
+	Node* tmp_node_current = iterator->current;
 
-	while (tmp_iterator->current != iterator->current)
-	{
-		tmp_iterator->goToNext();
-		prev = prev->next;
 
-		if (tmp_iterator->current == nullptr)
-		{
-			delete tmp_iterator;
-			return;
-		}
-	}
-	
-	prev->next = iterator->current->next;
-	
+	tmp_node = iterator->prev_node;
+
+	iterator->prev_node->next = iterator->current->next;
+
 	iterator->goToNext();
-	
-	_memory.freeMem(tmp_iterator->current);
 
-	delete tmp_iterator;
+	iterator->prev_node = tmp_node;
+
+	_memory.freeMem(tmp_node_current->value);
+	_memory.freeMem(tmp_node_current);
 
 	counter_node--;
 }
@@ -250,6 +231,8 @@ void List::clear()
 	while (tmp_node != nullptr)
 	{
 		root = root->next;
+
+		_memory.freeMem(tmp_node->value);
 
 		_memory.freeMem(tmp_node);
 
@@ -271,12 +254,20 @@ void List::print()
 	ListIterator* it = (ListIterator*)(newIterator());
 	for (int i = 0; i < size(); ++i)
 	{
-		cout << "Element " << i + 1 << ":" << endl;
-		//for (int j = 0; j < it->current->size_node; ++j)
-		int* tmp = (int*)it->current->value;
-		cout << *(tmp)<<endl;
-		//cout << endl;
+		cout << "Elem " << i + 1 << ")" << endl;
+
+		char* tmp_arr_chr = (char*)it->current->value;
+
+		for (int j = 0; j < it->current->size_node; ++j)
+			cout << tmp_arr_chr[j];
+
+		cout << endl;
+
 		it->goToNext();
 	}
+
+	delete it;
 }
+
+
 
